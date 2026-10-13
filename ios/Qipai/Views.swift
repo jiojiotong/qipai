@@ -409,7 +409,6 @@ struct DoudizhuTableView: View {
                 selected = Set(cards)
             }
         }
-        } // VStack(spacing: 8)
     } // ZStack
     .overlay(
         Group {
@@ -512,6 +511,7 @@ struct DoudizhuTableView: View {
             }
         }
         .padding(.horizontal)
+    } // actionButtons
 } // DoudizhuTableView
 
 struct OpponentView: View {
