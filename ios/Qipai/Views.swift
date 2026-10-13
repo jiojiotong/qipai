@@ -409,9 +409,48 @@ struct DoudizhuTableView: View {
                 selected = Set(cards)
             }
         }
-        .overlay { if client.phase == "over" { GameOverView() } }
+        } // VStack(spacing: 8)
+    } // ZStack
+    .overlay(
+        Group {
+            if showBomb {
+                BombEffectView { showBomb = false }
+                    .shake(intensity: 10)
+            }
+            if showRocket {
+                RocketEffectView { showRocket = false }
+            }
+            if client.phase == "deal" {
+                DealingCardsView(count: 17)
+            }
+        }
+    )
+    .sheet(isPresented: $showChat) {
+        QuickChatView(isShown: $showChat)
+            .environmentObject(client)
     }
-    } // 补 body 闭合
+    .onChange(of: client.turn) { _ in
+        startTurnTimer()
+    }
+    .onChange(of: client.lastPlay?.cards.count) { _ in
+        // 检测炸弹/火箭 + 牌型播报
+        if let lp = client.lastPlay {
+            let playKey = lp.cards.map { String($0.id) }.joined(separator: ",")
+            if playKey != lastPlayId {
+                lastPlayId = playKey
+                if lp.cards.count == 4 {
+                    showBomb = true
+                } else if lp.cards.count == 2 && lp.cards.allSatisfy({ $0.rank >= 16 }) {
+                    showRocket = true
+                } else if !lp.typeText.isEmpty {
+                    VoiceAnnouncer.shared.speak(lp.typeText)
+                    SoundManager.shared.play("deal")
+                }
+            }
+        }
+    }
+    .overlay { if client.phase == "over" { GameOverView().environmentObject(client) } }
+} // body
 
     private func seatName(_ i: Int) -> String {
         if i == client.mySeat { return "你" }
@@ -473,47 +512,7 @@ struct DoudizhuTableView: View {
             }
         }
         .padding(.horizontal)
-        } // VStack
-    } // ZStack
-    .overlay(
-        Group {
-            if showBomb {
-                BombEffectView { showBomb = false }
-                    .shake(intensity: 10)
-            }
-            if showRocket {
-                RocketEffectView { showRocket = false }
-            }
-            if client.phase == "deal" {
-                DealingCardsView(count: 17)
-            }
-        }
-    )
-    .sheet(isPresented: $showChat) {
-        QuickChatView(isShown: $showChat)
-            .environmentObject(client)
-    }
-    .onChange(of: client.turn) { _ in
-        startTurnTimer()
-    }
-    .onChange(of: client.lastPlay?.cards.count) { _ in
-        // 检测炸弹/火箭 + 牌型播报
-        if let lp = client.lastPlay {
-            let playKey = lp.cards.map { String($0.id) }.joined(separator: ",")
-            if playKey != lastPlayId {
-                lastPlayId = playKey
-                if lp.cards.count == 4 {
-                    showBomb = true
-                } else if lp.cards.count == 2 && lp.cards.allSatisfy({ $0.rank >= 16 }) {
-                    showRocket = true
-                } else if !lp.typeText.isEmpty {
-                    // 牌型语音播报
-                    VoiceAnnouncer.shared.speak(lp.typeText)
-                    SoundManager.shared.play("deal")
-                }
-            }
-        }
-    }
+} // DoudizhuTableView
 
 struct OpponentView: View {
     @EnvironmentObject var client: GameClient
