@@ -124,7 +124,36 @@ struct ScorePopupView: View {
     }
 }
 
-// MARK: - 炸弹震屏
+// MARK: - 春天全屏动画
+struct SpringEffectView: View {
+    @State private var scale: CGFloat = 0.5
+    @State private var opacity: Double = 1
+    let onDone: () -> Void
+
+    var body: some View {
+        ZStack {
+            Color.green.opacity(0.2 * opacity).ignoresSafeArea()
+            VStack(spacing: 12) {
+                Text("🌸🌸🌸").font(.system(size: 60)).scaleEffect(scale)
+                Text("春天!")
+                    .font(.system(size: 56, weight: .black))
+                    .foregroundColor(.green)
+                    .shadow(color: .yellow, radius: 12)
+                    .scaleEffect(scale)
+                Text("翻倍!").font(.system(size: 24, weight: .bold)).foregroundColor(.yellow)
+            }
+        }
+        .onAppear {
+            VoiceAnnouncer.shared.speak("春天，翻倍")
+            SoundManager.shared.play("win")
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.5)) { scale = 1.2 }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+                withAnimation(.easeOut(duration: 0.4)) { opacity = 0 }
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.7) { onDone() }
+        }
+    }
+}
 struct ShakeModifier: ViewModifier {
     let intensity: CGFloat
     @State private var offset: CGSize = .zero

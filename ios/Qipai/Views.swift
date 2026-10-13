@@ -309,6 +309,18 @@ struct DoudizhuTableView: View {
     @State private var showRocket = false
     @State private var showChat = false
     @State private var lastPlayId = ""
+    @State private var turnSeconds = 30
+
+    private func startTurnTimer() {
+        turnSeconds = 30
+        Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { t in
+            if turnSeconds > 0 {
+                turnSeconds -= 1
+            } else {
+                t.invalidate()
+            }
+        }
+    }
 
     var oppA: Int { (client.mySeat + 1) % 3 }
     var oppB: Int { (client.mySeat + 2) % 3 }
@@ -341,7 +353,10 @@ struct DoudizhuTableView: View {
                         .font(.caption).foregroundColor(lp.typeText.contains("炸") ? .red : .gray)
                     HStack(spacing: -14) { ForEach(lp.cards) { CardView(card: $0) } }
                 } else if client.phase == "play" {
-                    Text("轮到 \(seatName(client.turn)) 出牌").font(.caption).foregroundColor(.gray)
+                    HStack(spacing: 8) {
+                        Text("轮到 \(seatName(client.turn)) 出牌").font(.caption).foregroundColor(.gray)
+                        CountdownRing(progress: Double(turnSeconds) / 30.0, seconds: turnSeconds)
+                    }
                 }
             }
             .frame(minHeight: 120)
@@ -450,15 +465,22 @@ struct DoudizhuTableView: View {
         Group {
             if showBomb {
                 BombEffectView { showBomb = false }
+                    .shake(intensity: 10)
             }
             if showRocket {
                 RocketEffectView { showRocket = false }
+            }
+            if client.phase == "deal" {
+                DealingCardsView(count: 17)
             }
         }
     )
     .sheet(isPresented: $showChat) {
         QuickChatView(isShown: $showChat)
             .environmentObject(client)
+    }
+    .onChange(of: client.turn) { _ in
+        startTurnTimer()
     }
     .onChange(of: client.lastPlay?.cards.count) { _ in
         // 检测炸弹/火箭
@@ -518,6 +540,16 @@ struct OpponentView: View {
 // MARK: - 结算
 struct GameOverView: View {
     @EnvironmentObject var client: GameClient
+    @State private var showCoins = false
+    @State private var coinsDone = false
+    @State private var showSpring = false
+
+    private var myDelta: Int {
+        let i = client.mySeat
+        return i < client.resultDeltas.count ? client.resultDeltas[i] : 0
+    }
+    private var didWin: Bool { myDelta > 0 }
+
     var body: some View {
         ZStack {
             Color.black.opacity(0.7).ignoresSafeArea()
@@ -526,23 +558,57 @@ struct GameOverView: View {
                 if client.isFree {
                     Text("📝 记分模式").font(.caption).foregroundColor(gold)
                 }
+                // 得分飘字
+                if !client.isFree && myDelta != 0 {
+                    ScorePopupView(text: "\(myDelta > 0 ? "+" : "")\(myDelta)", isPositive: didWin)
+                }
                 ForEach(0..<min(client.resultDeltas.count, client.seats.count), id: \.self) { i in
                     let d = client.resultDeltas[i]
-                    Text("\(i < client.seats.count ? client.seats[i].name : "")  \(d >= 0 ? "+" : "")\(d)")
-                        .foregroundColor(d >= 0 ? .green : .red)
+                    HStack {
+                        Text(i < client.seats.count ? client.seats[i].name : "")
+                        Spacer()
+                        Text("\(d >= 0 ? "+" : "")\(d)")
+                            .bold()
+                            .foregroundColor(d >= 0 ? .green : .red)
+                    }
+                    .padding(.horizontal, 20)
                 }
                 if client.isFree {
                     Text("本局为记分，金币不变").font(.caption).foregroundColor(.gray)
                 } else {
                     Text("🪙 余额 \(client.coins)").foregroundColor(gold)
                 }
-                Button("再来一局") { client.startGame() }
-                    .buttonStyle(.borderedProminent).tint(gold).foregroundColor(.black)
+                TencentButton(title: "再来一局") { client.startGame() }
                 Button("返回大厅") { client.leaveRoom() }.foregroundColor(.gray)
             }
             .padding(28)
             .background(cardBack).cornerRadius(16)
             .padding(40)
+
+            // 金币飞行动画
+            if showCoins && !coinsDone {
+                CoinFlyView(fromBottom: didWin) { coinsDone = true }
+            }
+            // 春天动画
+            if showSpring {
+                SpringEffectView { showSpring = false }
+            }
+        }
+        .onAppear {
+            if client.resultInfo.contains("春天") {
+                showSpring = true
+            }
+            if !client.isFree && myDelta != 0 {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    showCoins = true
+                }
+            }
+            // 胜负语音
+            if didWin {
+                VoiceAnnouncer.shared.speak("恭喜获胜")
+            } else if myDelta < 0 {
+                VoiceAnnouncer.shared.speak("很遗憾")
+            }
         }
     }
 }
