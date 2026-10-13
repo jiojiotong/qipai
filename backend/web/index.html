@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>棋牌管理后台</title>
+<style>
+  :root {
+    --gold: #e8c547; --gold-dim: #c9a227; --bg: #0f0f0f; --card: #1a1a1a;
+    --card2: #222; --border: #2e2e2e; --text: #f0f0f0; --muted: #999; --red: #e5484d;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body { font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    margin: 0; background: var(--bg); color: var(--text); font-size: 15px; line-height: 1.5;
+    padding-bottom: env(safe-area-inset-bottom); }
+  /* 登录 */
+  #login { max-width: 340px; margin: 15vh auto 0; padding: 0 20px; }
+  .login-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 28px 24px; }
+  .login-card h2 { margin: 0 0 20px; color: var(--gold); font-size: 20px; text-align: center; }
+  /* 顶栏 */
+  header { position: sticky; top: 0; z-index: 10; background: rgba(0,0,0,.92); backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--gold-dim); padding: 12px 16px;
+    display: flex; justify-content: space-between; align-items: center; }
+  header h1 { margin: 0; font-size: 17px; color: var(--gold); font-weight: 700; }
+  header .sub { font-size: 11px; color: var(--muted); font-weight: 400; }
+  /* 导航 */
+  nav { position: sticky; top: 53px; z-index: 9; display: flex; gap: 8px; padding: 10px 16px;
+    background: rgba(15,15,15,.95); backdrop-filter: blur(8px); overflow-x: auto; }
+  nav button { flex: 1; min-width: 72px; background: var(--card2); color: var(--muted); border: 1px solid var(--border);
+    padding: 9px 6px; border-radius: 10px; cursor: pointer; font-size: 13px; white-space: nowrap; }
+  nav button.on { background: var(--gold); color: #000; border-color: var(--gold); font-weight: 700; }
+  main { padding: 14px 14px 40px; max-width: 860px; margin: 0 auto; }
+  .hidden { display: none !important; }
+  /* 通用卡片 */
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+    padding: 16px; margin-bottom: 12px; }
+  .card h3 { margin: 0 0 12px; font-size: 16px; color: var(--gold); }
+  .desc { color: var(--muted); font-size: 12px; margin: 8px 0 0; }
+  /* 表单 */
+  .row { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; flex-wrap: wrap; }
+  label { color: var(--muted); font-size: 13px; }
+  input, select { background: #111; border: 1px solid #3a3a3a; color: #fff;
+    padding: 10px 12px; border-radius: 9px; font-size: 14px; }
+  input:focus, select:focus { outline: none; border-color: var(--gold-dim); }
+  select { max-width: 100%; }
+  /* 按钮 */
+  .btn { border: 0; border-radius: 9px; padding: 10px 16px; font-size: 14px; font-weight: 600;
+    cursor: pointer; transition: opacity .15s; }
+  .btn:active { opacity: .7; }
+  .btn-gold { background: var(--gold); color: #000; }
+  .btn-ghost { background: var(--card2); color: var(--text); border: 1px solid var(--border); }
+  .btn-red { background: rgba(229,72,77,.14); color: var(--red); border: 1px solid rgba(229,72,77,.4); }
+  .btn-sm { padding: 7px 12px; font-size: 13px; }
+  .btn-block { width: 100%; }
+  /* 徽标 */
+  .badge { display: inline-block; font-size: 11px; padding: 3px 9px; border-radius: 20px; font-weight: 600; }
+  .b-gold { background: rgba(232,197,71,.15); color: var(--gold); }
+  .b-green { background: rgba(70,180,90,.15); color: #5fd08a; }
+  .b-gray { background: rgba(150,150,150,.14); color: #aaa; }
+  .b-blue { background: rgba(80,140,255,.14); color: #7aa8ff; }
+  /* 房间卡片 */
+  .room { background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+    padding: 14px; margin-bottom: 12px; }
+  .room-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .room-id { font-size: 17px; font-weight: 800; letter-spacing: 1px; color: var(--gold); }
+  .room-meta { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+  .seats { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
+  .seat { display: flex; align-items: center; gap: 8px; background: #141414;
+    border-radius: 9px; padding: 8px 10px; font-size: 14px; }
+  .seat .ava { width: 28px; height: 28px; border-radius: 50%; background: var(--card2);
+    display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
+  .seat .nm { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .seat .tag { font-size: 11px; color: var(--muted); }
+  .cheat-box { background: rgba(232,197,71,.06); border: 1px dashed rgba(232,197,71,.35);
+    border-radius: 10px; padding: 10px; }
+  .cheat-box .t { font-size: 13px; color: var(--gold); font-weight: 700; margin-bottom: 8px; }
+  .cheat-on { display: flex; justify-content: space-between; align-items: center; }
+  /* 用户/对局行 */
+  .u-row { display: flex; align-items: center; gap: 10px; padding: 11px 4px;
+    border-bottom: 1px solid var(--border); }
+  .u-row:last-child { border-bottom: 0; }
+  .u-ava { width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, #2a2a2a, #1a1a1a);
+    border: 1px solid var(--border); display: flex; align-items: center; justify-content: center;
+    font-size: 17px; flex-shrink: 0; }
+  .u-info { flex: 1; min-width: 0; }
+  .u-name { font-weight: 600; font-size: 15px; }
+  .u-sub { font-size: 12px; color: var(--muted); }
+  .u-coins { color: var(--gold); font-weight: 700; font-size: 15px; }
+  .u-acts { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+  .delta-pos { color: #5fd08a; font-weight: 700; }
+  .delta-neg { color: var(--red); font-weight: 700; }
+  /* 配置 */
+  .cfg-row { display: flex; align-items: center; gap: 10px; padding: 11px 0;
+    border-bottom: 1px solid var(--border); }
+  .cfg-row:last-child { border-bottom: 0; }
+  .cfg-row .lb { flex: 1; }
+  .cfg-row .lb .t { font-size: 14px; }
+  .cfg-row .lb .k { font-size: 11px; color: var(--muted); font-family: monospace; }
+  .cfg-row input { width: 110px; text-align: right; }
+  /* 搜索条 */
+  .searchbar { display: flex; gap: 8px; margin-bottom: 12px; }
+  .searchbar input { flex: 1; }
+  /* 空状态 */
+  .empty { text-align: center; color: var(--muted); padding: 36px 0; font-size: 14px; }
+  @media (min-width: 640px) {
+    .seats { display: grid; grid-template-columns: 1fr 1fr; }
+    main { padding: 20px 20px 60px; }
+  }
+</style>
+</head>
+<body>
+<div id="login">
+  <div class="login-card">
+    <h2>🃏 棋牌管理后台</h2>
+    <div class="row"><input id="l_name" placeholder="管理员用户名" style="width:100%" autocomplete="username"></div>
+    <div class="row"><input id="l_pass" type="password" placeholder="密码" style="width:100%" autocomplete="current-password"></div>
+    <div class="row"><button class="btn btn-gold btn-block" onclick="doLogin()">登录</button></div>
+    <p class="desc" style="text-align:center">首个注册的用户自动成为管理员</p>
+  </div>
+</div>
+<div id="app" class="hidden">
+  <header>
+    <div><h1>🃏 棋牌管理</h1><div class="sub" id="hdr_sub">ddz.anyther.top</div></div>
+    <button class="btn btn-ghost btn-sm" onclick="logout()">退出</button>
+  </header>
+  <nav>
+    <button id="tab_rooms" class="on" onclick="show('rooms')">🏠 房间</button>
+    <button id="tab_users" onclick="show('users')">👥 用户</button>
+    <button id="tab_games" onclick="show('games')">🎲 对局</button>
+    <button id="tab_cfg" onclick="show('cfg')">⚙️ 配置</button>
+  </nav>
+  <main>
+    <div id="p_rooms"></div>
+    <div id="p_users" class="hidden"></div>
+    <div id="p_games" class="hidden"></div>
+    <div id="p_cfg" class="hidden"></div>
+  </main>
+</div>
+<script>
+let token = '';
+const API_BASE = (() => {
+  const p = location.pathname;
+  const i = p.lastIndexOf('/admin/');
+  return (i >= 0 ? p.slice(0, i) : '') + '/api/';
+})();
+try { document.getElementById('hdr_sub').textContent = location.host; } catch (e) {}
+const H = () => ({ 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token });
+async function api(p, opt = {}) {
+  const r = await fetch(API_BASE + p, { ...opt, headers: H() });
+  const j = await r.json();
+  if (!r.ok) throw new Error(j.error || '请求失败');
+  return j;
+}
+async function doLogin() {
+  try {
+    const j = await fetch(API_BASE + 'login', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: l_name.value, password: l_pass.value }) }).then(r => r.json());
+    if (!j.token) return alert(j.error || '登录失败');
+    if (!j.user.is_admin) return alert('不是管理员');
+    token = j.token;
+    login.classList.add('hidden'); app.classList.remove('hidden');
+    show('rooms');
+  } catch (e) { alert(e.message); }
+}
+function logout() { location.reload(); }
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const GAME_NAME = { doudizhu: '斗地主', texas: '德州', zha: '炸金花' };
+const CFG_DESC = [
+  ['base_score', '斗地主底分'], ['texas_bb', '德州大盲注'], ['zha_base', '炸金花底注'],
+  ['start_coins', '新用户初始金币'], ['relief_coins', '破产救济金（0=关闭）'],
+  ['bot_delay_ms', '机器人出牌延迟(ms)'], ['room_max', '最大房间数'],
+];
+async function show(which) {
+  for (const t of ['cfg', 'users', 'games', 'rooms']) {
+    document.getElementById('tab_' + t).classList.toggle('on', t === which);
+    document.getElementById('p_' + t).classList.toggle('hidden', t !== which);
+  }
+  try {
+    if (which === 'cfg') await renderCfg();
+    else if (which === 'users') await renderUsers();
+    else if (which === 'games') await renderGames();
+    else await renderRooms();
+  } catch (e) { alert(e.message); }
+}
+/* ---- 配置 ---- */
+async function renderCfg() {
+  const cfg = await api('admin/config');
+  p_cfg.innerHTML = '<div class="card"><h3>⚙️ 参数配置</h3>' + CFG_DESC.map(([k, t]) =>
+    `<div class="cfg-row"><div class="lb"><div class="t">${t}</div><div class="k">${k}</div></div>
+     <input id="cfg_${k}" value="${esc(cfg[k] ?? '')}" inputmode="numeric">
+     <button class="btn btn-gold btn-sm" onclick="saveCfg('${k}')">保存</button></div>`
+  ).join('') + '</div>';
+}
+async function saveCfg(k) {
+  try { await api('admin/config', { method: 'PUT', body: JSON.stringify({ key: k, value: document.getElementById('cfg_' + k).value }) }); alert('已保存'); }
+  catch (e) { alert(e.message); }
+}
+/* ---- 用户 ---- */
+async function renderUsers() {
+  const users = await api('admin/users');
+  p_users.innerHTML = '<div class="card"><h3>👥 用户 <span class="badge b-gray">' + users.length + '</span></h3>' +
+    (users.length ? users.map(u => `
+      <div class="u-row">
+        <div class="u-ava">${u.is_admin ? '👑' : '🧑'}</div>
+        <div class="u-info">
+          <div class="u-name">${esc(u.name)} ${u.is_admin ? '<span class="badge b-gold">管理员</span>' : ''}</div>
+          <div class="u-sub">ID ${u.id} · ${esc(u.created_at || '')}</div>
+          <div class="u-acts">
+            <input id="dc_${u.id}" placeholder="±金币" style="width:90px" inputmode="numeric">
+            <button class="btn btn-gold btn-sm" onclick="addCoins(${u.id})">调币</button>
+            <button class="btn btn-red btn-sm" onclick="delUser(${u.id}, '${esc(u.name)}')">删除</button>
+          </div>
+        </div>
+        <div class="u-coins">${u.coins}</div>
+      </div>`).join('') : '<div class="empty">暂无用户</div>') + '</div>';
+}
+async function addCoins(id) {
+  const v = document.getElementById('dc_' + id).value.trim();
+  if (!v) return alert('请输入增减数量');
+  try { const j = await api(`admin/users/${id}/coins`, { method: 'POST', body: JSON.stringify({ delta: v, reason: '后台调整' }) }); alert('当前金币：' + j.coins); renderUsers(); }
+  catch (e) { alert(e.message); }
+}
+async function delUser(id, name) {
+  if (!confirm(`删除用户「${name}」？其战绩、金币流水一并删除，不可恢复！`)) return;
+  try { await api(`admin/users/${id}`, { method: 'DELETE' }); renderUsers(); }
+  catch (e) { alert(e.message); }
+}
+/* ---- 对局 ---- */
+async function renderGames() {
+  const games = await api('admin/games');
+  p_games.innerHTML = '<div class="card"><h3>🎲 最近对局</h3>' +
+    (games.length ? games.map(g => {
+      let p = []; try { p = JSON.parse(g.players); } catch (e) {}
+      return `<div class="u-row">
+        <div class="u-ava">${g.game === 'texas' ? '♠️' : g.game === 'zha' ? '🃏' : '🀄'}</div>
+        <div class="u-info">
+          <div class="u-name">#${g.id} ${GAME_NAME[g.game] || g.game}
+            <span class="badge ${g.mode === 'free' ? 'b-blue' : 'b-gray'}">${g.mode === 'free' ? '📝 记分' : '🪙 金币'}</span></div>
+          <div class="u-sub">${esc(g.room_id)} · ${esc(g.created_at || '')}</div>
+          <div class="u-sub">${p.map(x => `${esc(x.name)} <span class="${x.delta >= 0 ? 'delta-pos' : 'delta-neg'}">${x.delta >= 0 ? '+' : ''}${x.delta}</span>`).join(' · ')}</div>
+        </div>
+        <button class="btn btn-red btn-sm" onclick="delGame(${g.id})">删除</button>
+      </div>`;
+    }).join('') : '<div class="empty">暂无对局</div>') + '</div>';
+}
+async function delGame(id) {
+  if (!confirm(`删除对局 #${id}？不可恢复！`)) return;
+  try { await api(`admin/games/${id}`, { method: 'DELETE' }); renderGames(); }
+  catch (e) { alert(e.message); }
+}
+/* ---- 房间 ---- */
+let roomQ = '', roomU = '';
+async function renderRooms() {
+  const params = new URLSearchParams();
+  if (roomQ) params.set('search', roomQ);
+  if (roomU) params.set('user', roomU);
+  const rooms = await api('admin/rooms' + (params.toString() ? '?' + params.toString() : ''));
+  p_rooms.innerHTML =
+    `<div class="searchbar">
+       <input id="roomSearch" placeholder="🔍 房号" value="${esc(roomQ)}">
+       <input id="roomUserSearch" placeholder="🔍 用户ID/名" value="${esc(roomU)}">
+       <button class="btn btn-gold btn-sm" onclick="doRoomSearch()">搜</button>
+       ${(roomQ || roomU) ? '<button class="btn btn-ghost btn-sm" onclick="roomQ=\'\';roomU=\'\';renderRooms()">✕</button>' : ''}
+     </div>` +
+    (rooms.length ? rooms.map(r => {
+      const players = (r.players || []).filter(Boolean);
+      const seatsHtml = players.map(p => `
+        <div class="seat"><div class="ava">${p.kind === 'bot' ? '🤖' : '🧑'}</div>
+          <div class="nm">${esc(p.name) || '空位'}</div>
+          <div class="tag">${p.seat}号${p.userId ? ' · ID' + p.userId : ''}</div></div>`).join('');
+      const cheatHtml = r.cheat >= 0
+        ? `<div class="cheat-on"><span class="badge b-gold">🎯 下把赢家已指定</span>
+             <button class="btn btn-ghost btn-sm" onclick="setCheat('${r.roomId}', -1)">取消</button></div>`
+        : `<div class="t">🎬 导演模式</div>
+           <div class="row" style="margin:0">
+             <select id="cheat_${r.roomId}" style="flex:1">
+               <option value="-1">选择赢家…</option>
+               ${players.filter(p => p.name).map(p => `<option value="${p.seat}">${esc(p.name)}（${p.seat}号）</option>`).join('')}
+             </select>
+             <button class="btn btn-gold btn-sm" onclick="setCheat('${r.roomId}', document.getElementById('cheat_${r.roomId}').value)">指定</button>
+           </div>`;
+      return `<div class="room">
+        <div class="room-top"><span class="room-id">${r.roomId}</span>
+          <span class="badge ${r.playing ? 'b-green' : 'b-gray'}">${r.playing ? '🎮 对局中' : '🪑 等待中'}</span></div>
+        <div class="room-meta">
+          <span class="badge b-blue">${GAME_NAME[r.game] || r.game}</span>
+          <span class="badge b-gray">${r.seats}/${r.seatCount}人</span>
+          ${r.free ? '<span class="badge b-gold">📝 记分</span>' : ''}
+        </div>
+        <div class="seats">${seatsHtml}</div>
+        <div class="cheat-box">${cheatHtml}</div>
+      </div>`;
+    }).join('') : '<div class="empty">没有符合条件的房间</div>') +
+    '<p class="desc">导演模式：温和版作弊，给指定玩家发好牌（看着像运气好）。点「指定」立即生效，下一把发牌后自动清除。</p>';
+  const rs = document.getElementById('roomSearch'), us = document.getElementById('roomUserSearch');
+  const go = () => { roomQ = rs.value.trim(); roomU = us.value.trim(); renderRooms(); };
+  rs.onkeydown = us.onkeydown = e => { if (e.key === 'Enter') go(); };
+}
+function doRoomSearch() {
+  roomQ = document.getElementById('roomSearch').value.trim();
+  roomU = document.getElementById('roomUserSearch').value.trim();
+  renderRooms();
+}
+async function setCheat(roomId, seat) {
+  seat = parseInt(seat, 10);
+  if (seat < 0) {
+    try { await api('admin/cheat', { method: 'POST', body: JSON.stringify({ roomId, seat: -1 }) }); renderRooms(); }
+    catch (e) { alert(e.message); }
+    return;
+  }
+  try { await api('admin/cheat', { method: 'POST', body: JSON.stringify({ roomId, seat }) }); renderRooms(); }
+  catch (e) { alert(e.message); }
+}
+</script>
+</body>
+</html>
