@@ -1,3 +1,4 @@
+import SwiftUI
 
 // MARK: - 设置（含改密码）
 struct SettingsView: View {

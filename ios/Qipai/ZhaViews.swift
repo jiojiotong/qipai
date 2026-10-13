@@ -1,3 +1,4 @@
+import SwiftUI
 
 // MARK: - 炸金花牌桌
 struct ZhaTableView: View {

@@ -1,3 +1,5 @@
+import SwiftUI
+import Foundation
 
 // MARK: - 我的战绩
 struct MyGamesView: View {
