@@ -357,7 +357,7 @@ struct DoudizhuTableView: View {
                 if let lp = client.lastPlay, !lp.cards.isEmpty {
                     Text("\(seatName(lp.seat))：\(lp.typeText)")
                         .font(.caption).foregroundColor(lp.typeText.contains("炸") ? .red : .gray)
-                    HStack(spacing: -14) { ForEach(lp.cards) { CardView(card: $0) } }
+                    HStack(spacing: -10) { ForEach(lp.cards) { CardView(card: $0) } }
                 } else if client.phase == "play" {
                     HStack(spacing: 8) {
                         Text("轮到 \(seatName(client.turn)) 出牌").font(.caption).foregroundColor(.gray)
@@ -379,12 +379,18 @@ struct DoudizhuTableView: View {
                     }
                 }
                 ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: -28) {
-                        ForEach(client.hand) { card in
+                    HStack(spacing: -18) {
+                        ForEach(Array(client.hand.enumerated()), id: \.element.id) { idx, card in
+                            let total = client.hand.count
+                            let center = Double(total - 1) / 2.0
+                            let offset = Double(idx) - center
+                            // 扇形：中间高两边低，轻微旋转
                             CardView(card: card, selected: selected.contains(card.id))
+                                .rotationEffect(.degrees(offset * 1.2))
+                                .offset(y: abs(offset) * 1.5)
                                 .onTapGesture { toggle(card.id) }
                         }
-                    }.padding(.horizontal, 16).padding(.top, 14)
+                    }.padding(.horizontal, 20).padding(.top, 18).padding(.bottom, 4)
                 }
                 actionButtons
             }

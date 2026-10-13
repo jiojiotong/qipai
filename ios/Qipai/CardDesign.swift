@@ -40,25 +40,25 @@ struct CardView: View {
                 // 左上角角标
                 VStack(spacing: 0) {
                     Text(card.rankText)
-                        .font(.system(size: small ? 11 : 16, weight: .bold))
+                        .font(.system(size: small ? 12 : 18, weight: .bold))
                     Text(card.suitText)
-                        .font(.system(size: small ? 10 : 14))
+                        .font(.system(size: small ? 11 : 16))
                 }
                 .foregroundColor(fg)
-                .position(x: small ? 12 : 16, y: small ? 14 : 20)
+                .position(x: small ? 13 : 18, y: small ? 15 : 22)
                 // 右下角角标（旋转180°）
                 VStack(spacing: 0) {
                     Text(card.rankText)
-                        .font(.system(size: small ? 11 : 16, weight: .bold))
+                        .font(.system(size: small ? 12 : 18, weight: .bold))
                     Text(card.suitText)
-                        .font(.system(size: small ? 10 : 14))
+                        .font(.system(size: small ? 11 : 16))
                 }
                 .foregroundColor(fg)
                 .rotationEffect(.degrees(180))
-                .position(x: w - (small ? 12 : 16), y: h - (small ? 14 : 20))
+                .position(x: w - (small ? 13 : 18), y: h - (small ? 15 : 22))
                 // 中央大花色
                 Text(card.suitText)
-                    .font(.system(size: small ? 22 : 34))
+                    .font(.system(size: small ? 24 : 38))
                     .foregroundColor(fg.opacity(0.9))
             }
         }
