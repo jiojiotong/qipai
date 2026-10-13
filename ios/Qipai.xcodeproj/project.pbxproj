@@ -13,9 +13,9 @@
 		A1B2C3D40000000000000023 /* Views.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D40000000000000013 /* Views.swift */; };
 		A1B2C3D40000000000000025 /* TexasViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D40000000000000017 /* TexasViews.swift */; };
 		A1B2C3D40000000000000026 /* ZhaViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D40000000000000018 /* ZhaViews.swift */; };
-		A1B2C3D40000000000000027 /* CardDesign.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D40000000000000028 /* CardDesign.swift */; };
-		A1B2C3D40000000000000029 /* TencentStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D40000000000000030 /* TencentStyle.swift */; };
-		A1B2C3D40000000000000031 /* FancyEffects.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D40000000000000032 /* FancyEffects.swift */; };
+		C1000000000000000000001 /* CardDesign.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1000000000000000000002 /* CardDesign.swift */; };
+		C1000000000000000000003 /* TencentStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1000000000000000000004 /* TencentStyle.swift */; };
+		C1000000000000000000005 /* FancyEffects.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1000000000000000000006 /* FancyEffects.swift */; };
 		A1B2C3D40000000000000027 /* MyGamesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D40000000000000019 /* MyGamesView.swift */; };
 		A1B2C3D40000000000000028 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4000000000000001A /* SettingsView.swift */; };
 		A1B2C3D40000000000000024 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A1B2C3D40000000000000015 /* Assets.xcassets */; };
@@ -28,9 +28,9 @@
 		A1B2C3D40000000000000013 /* Views.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views.swift; sourceTree = "<group>"; };
 		A1B2C3D40000000000000017 /* TexasViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TexasViews.swift; sourceTree = "<group>"; };
 		A1B2C3D40000000000000018 /* ZhaViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZhaViews.swift; sourceTree = "<group>"; };
-		A1B2C3D40000000000000028 /* CardDesign.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardDesign.swift; sourceTree = "<group>"; };
-		A1B2C3D40000000000000030 /* TencentStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TencentStyle.swift; sourceTree = "<group>"; };
-		A1B2C3D40000000000000032 /* FancyEffects.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FancyEffects.swift; sourceTree = "<group>"; };
+		C1000000000000000000002 /* CardDesign.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardDesign.swift; sourceTree = "<group>"; };
+		C1000000000000000000004 /* TencentStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TencentStyle.swift; sourceTree = "<group>"; };
+		C1000000000000000000006 /* FancyEffects.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FancyEffects.swift; sourceTree = "<group>"; };
 		A1B2C3D40000000000000019 /* MyGamesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyGamesView.swift; sourceTree = "<group>"; };
 		A1B2C3D4000000000000001A /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		A1B2C3D40000000000000014 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -66,9 +66,9 @@
 				A1B2C3D40000000000000013 /* Views.swift */,
 				A1B2C3D40000000000000017 /* TexasViews.swift */,
 				A1B2C3D40000000000000018 /* ZhaViews.swift */,
-				A1B2C3D40000000000000028 /* CardDesign.swift */,
-				A1B2C3D40000000000000030 /* TencentStyle.swift */,
-				A1B2C3D40000000000000032 /* FancyEffects.swift */,
+				C1000000000000000000002 /* CardDesign.swift */,
+				C1000000000000000000004 /* TencentStyle.swift */,
+				C1000000000000000000006 /* FancyEffects.swift */,
 				A1B2C3D40000000000000019 /* MyGamesView.swift */,
 				A1B2C3D4000000000000001A /* SettingsView.swift */,
 				A1B2C3D40000000000000014 /* Info.plist */,
@@ -159,9 +159,9 @@
 				A1B2C3D40000000000000023 /* Views.swift in Sources */,
 				A1B2C3D40000000000000025 /* TexasViews.swift in Sources */,
 				A1B2C3D40000000000000026 /* ZhaViews.swift in Sources */,
-				A1B2C3D40000000000000027 /* CardDesign.swift in Sources */,
-				A1B2C3D40000000000000029 /* TencentStyle.swift in Sources */,
-				A1B2C3D40000000000000031 /* FancyEffects.swift in Sources */,
+				C1000000000000000000001 /* CardDesign.swift in Sources */,
+				C1000000000000000000003 /* TencentStyle.swift in Sources */,
+				C1000000000000000000005 /* FancyEffects.swift in Sources */,
 				A1B2C3D40000000000000027 /* MyGamesView.swift in Sources */,
 				A1B2C3D40000000000000028 /* SettingsView.swift in Sources */,
 			);
