@@ -1,20 +1,3 @@
-name: Build iOS IPA
-
-on:
-  push:
-    branches: [main, master]
-    paths: ['ios/**', '.github/workflows/ios.yml']
-  workflow_dispatch:
-
-jobs:
-  build:
-    runs-on: macos-15
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Xcode 信息
-        run: xcodebuild -version
-
       - name: Archive（不签名）
         working-directory: ios
         run: |
@@ -29,22 +12,7 @@ jobs:
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY="" 2>&1 | tee ../build.log
           STATUS=${PIPESTATUS[0]}
-          echo "## 编译错误" >> $GITHUB_STEP_SUMMARY
-          grep -n "error:" ../build.log | head -20 >> $GITHUB_STEP_SUMMARY || echo "无 error 行" >> $GITHUB_STEP_SUMMARY
+          grep -E "error:" ../build.log | head -10 | while read -r line; do
+            echo "::error::$line"
+          done
           exit $STATUS
-
-      - name: 打包未签名 IPA
-        run: |
-          APP=build/Qipai.xcarchive/Products/Applications/Qipai.app
-          test -d "$APP" || { echo "找不到 $APP"; exit 1; }
-          mkdir -p build/Payload
-          cp -R "$APP" build/Payload/
-          (cd build && zip -qr Qipai-unsigned.ipa Payload)
-          ls -la build/Qipai-unsigned.ipa
-
-      - name: 上传 IPA
-        uses: actions/upload-artifact@v4
-        with:
-          name: Qipai-unsigned-ipa
-          path: build/Qipai-unsigned.ipa
-          retention-days: 30
