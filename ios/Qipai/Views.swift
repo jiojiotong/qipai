@@ -329,6 +329,12 @@ struct DoudizhuTableView: View {
         ZStack {
             FancyTableBackground()
             VStack(spacing: 8) {
+            // 顶栏：记牌器
+            HStack {
+                Spacer()
+                CardTrackerView().environmentObject(client)
+            }
+            .padding(.horizontal, 12)
             // 对手
             HStack {
                 OpponentView(seat: oppA)
@@ -483,7 +489,7 @@ struct DoudizhuTableView: View {
         startTurnTimer()
     }
     .onChange(of: client.lastPlay?.cards.count) { _ in
-        // 检测炸弹/火箭
+        // 检测炸弹/火箭 + 牌型播报
         if let lp = client.lastPlay {
             let playKey = lp.cards.map { String($0.id) }.joined(separator: ",")
             if playKey != lastPlayId {
@@ -492,6 +498,10 @@ struct DoudizhuTableView: View {
                     showBomb = true
                 } else if lp.cards.count == 2 && lp.cards.allSatisfy({ $0.rank >= 16 }) {
                     showRocket = true
+                } else if !lp.typeText.isEmpty {
+                    // 牌型语音播报
+                    VoiceAnnouncer.shared.speak(lp.typeText)
+                    SoundManager.shared.play("deal")
                 }
             }
         }
@@ -509,6 +519,8 @@ struct OpponentView: View {
         return avatars[h]
     }
 
+    @State private var showProps = false
+
     var body: some View {
         VStack(spacing: 4) {
             PlayerPanelView(
@@ -519,6 +531,17 @@ struct OpponentView: View {
                 isTurn: (client.turn == seat && client.phase == "play") || (client.bidTurn == seat && client.phase == "bid"),
                 avatar: avatar
             )
+            .onLongPressGesture {
+                showProps = true
+            }
+            .actionSheet(isPresented: $showProps) {
+                ActionSheet(title: Text("送互动道具"), buttons: [
+                    .default(Text("🥚 扔鸡蛋")) { client.sendChat("🥚") },
+                    .default(Text("🌹 送鲜花")) { client.sendChat("🌹") },
+                    .default(Text("💣 炸弹问候")) { client.sendChat("💣") },
+                    .cancel(Text("取消")),
+                ])
+            }
             if client.phase == "bid", seat < client.bids.count, let b = client.bids[seat] {
                 Text(b == 0 ? "不叫" : "叫\(b)分")
                     .font(.caption).bold().foregroundColor(.white)

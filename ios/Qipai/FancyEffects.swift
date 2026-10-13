@@ -254,3 +254,94 @@ struct GameTopBar: View {
         .padding(.top, 8)
     }
 }
+
+// MARK: - 记牌器
+struct CardTrackerView: View {
+    @EnvironmentObject var client: GameClient
+    @State private var expanded = false
+
+    private var remaining: [Int: Int] {
+        var counts: [Int: Int] = [:]
+        for r in 3...15 { counts[r] = 4 }
+        counts[16] = 1; counts[17] = 1
+        for c in client.hand { counts[c.rank, default: 0] -= 1 }
+        return counts
+    }
+
+    private func rankLabel(_ r: Int) -> String {
+        switch r {
+        case 11: return "J"; case 12: return "Q"; case 13: return "K"
+        case 14: return "A"; case 15: return "2"
+        case 16: return "小"; case 17: return "大"
+        default: return "\(r)"
+        }
+    }
+
+    var body: some View {
+        VStack(spacing: 4) {
+            Button(action: { expanded.toggle() }) {
+                HStack(spacing: 4) {
+                    Text("🃏").font(.system(size: 12))
+                    Text("记牌器").font(.system(size: 11, weight: .bold)).foregroundColor(.white)
+                    Text(expanded ? "▲" : "▼").font(.system(size: 8)).foregroundColor(.gray)
+                }
+                .padding(.horizontal, 10).padding(.vertical, 5)
+                .background(Color.black.opacity(0.5))
+                .cornerRadius(10)
+            }
+            if expanded {
+                VStack(spacing: 3) {
+                    HStack(spacing: 6) {
+                        ForEach([17, 16, 15, 14, 13, 12, 11], id: \.self) { r in
+                            VStack(spacing: 1) {
+                                Text(rankLabel(r))
+                                    .font(.system(size: 11, weight: .bold))
+                                    .foregroundColor((remaining[r, default: 0] == 0) ? .gray.opacity(0.4) : .white)
+                                Text("\(remaining[r, default: 0])")
+                                    .font(.system(size: 9))
+                                    .foregroundColor(.yellow)
+                            }
+                            .frame(width: 26)
+                        }
+                    }
+                    HStack(spacing: 6) {
+                        ForEach([10, 9, 8, 7, 6, 5, 4, 3], id: \.self) { r in
+                            VStack(spacing: 1) {
+                                Text(rankLabel(r))
+                                    .font(.system(size: 11, weight: .bold))
+                                    .foregroundColor((remaining[r, default: 0] == 0) ? .gray.opacity(0.4) : .white)
+                                Text("\(remaining[r, default: 0])")
+                                    .font(.system(size: 9))
+                                    .foregroundColor(.yellow)
+                            }
+                            .frame(width: 26)
+                        }
+                    }
+                }
+                .padding(8)
+                .background(Color.black.opacity(0.6))
+                .cornerRadius(10)
+            }
+        }
+    }
+}
+
+// MARK: - 互动道具
+struct PropEffectView: View {
+    let prop: String
+    let onDone: () -> Void
+    @State private var progress: Double = 0
+
+    var body: some View {
+        let emoji = prop == "egg" ? "🥚" : (prop == "flower" ? "🌹" : "💣")
+        Text(emoji)
+            .font(.system(size: 50))
+            .offset(y: (1 - progress) * 200 - 50)
+            .scaleEffect(1 + progress * 0.5)
+            .onAppear {
+                SoundManager.shared.play("click")
+                withAnimation(.easeIn(duration: 0.5)) { progress = 1 }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) { onDone() }
+            }
+    }
+}
