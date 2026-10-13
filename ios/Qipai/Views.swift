@@ -314,7 +314,9 @@ struct DoudizhuTableView: View {
     var oppB: Int { (client.mySeat + 2) % 3 }
 
     var body: some View {
-        VStack(spacing: 8) {
+        ZStack {
+            FancyTableBackground()
+            VStack(spacing: 8) {
             // 对手
             HStack {
                 OpponentView(seat: oppA)
@@ -398,38 +400,33 @@ struct DoudizhuTableView: View {
         HStack(spacing: 12) {
             if client.phase == "bid" && client.bidTurn == client.mySeat {
                 let bidMax = client.bids.compactMap { $0 }.max() ?? 0
-                Button("不叫") {
+                TencentButton(title: "不叫", isPrimary: false) {
                     client.bid(0)
-                    SoundManager.shared.play("click")
                     VoiceAnnouncer.shared.speak("不叫")
-                }.buttonStyle(.bordered)
+                }
                 if bidMax < 3 {
                     ForEach((bidMax + 1)...3, id: \.self) { s in
-                        Button("\(s)分") {
+                        TencentButton(title: "\(s)分") {
                             client.bid(s)
-                            SoundManager.shared.play("click")
                             VoiceAnnouncer.shared.speak("叫\(s)分")
                         }
-                            .buttonStyle(.borderedProminent).tint(gold).foregroundColor(.black)
                     }
                 }
             } else if client.phase == "play" && client.turn == client.mySeat {
                 if client.lastPlay != nil {
-                    Button("不出") {
+                    TencentButton(title: "不出", isPrimary: false) {
                         client.pass()
-                        SoundManager.shared.play("click")
                         VoiceAnnouncer.shared.speak("不出")
-                    }.buttonStyle(.bordered)
+                    }
                 }
-                Button("提示") { client.requestHint() }.buttonStyle(.bordered)
+                TencentButton(title: "提示", isPrimary: false) { client.requestHint() }
                 if passHint {
                     Text("💡 建议不出").font(.caption).foregroundColor(gold)
                 }
-                Button("出牌") {
+                TencentButton(title: "出牌", enabled: !selected.isEmpty) {
                     let cards = selected.sorted()
                     client.playCards(cards)
                     selected.removeAll()
-                    // 炸弹/火箭特殊音效+播报
                     if cards.count == 4 || (cards.count == 2 && cards.allSatisfy({ $0.rank >= 16 })) {
                         SoundManager.shared.play("bomb")
                         VoiceAnnouncer.shared.speak("炸弹")
@@ -437,8 +434,6 @@ struct DoudizhuTableView: View {
                         SoundManager.shared.play("deal")
                     }
                 }
-                .buttonStyle(.borderedProminent).tint(gold).foregroundColor(.black)
-                .disabled(selected.isEmpty)
             } else {
                 Button("💬") { showChat = true }
                     .font(.title2)
@@ -449,7 +444,8 @@ struct DoudizhuTableView: View {
             }
         }
         .padding(.horizontal)
-    }
+        } // VStack
+    } // ZStack
     .overlay(
         Group {
             if showBomb {
