@@ -18,6 +18,7 @@ jobs:
       - name: Archive（不签名）
         working-directory: ios
         run: |
+          set -o pipefail
           xcodebuild archive \
             -project Qipai.xcodeproj \
             -scheme Qipai \
@@ -26,7 +27,11 @@ jobs:
             -archivePath ../build/Qipai.xcarchive \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGN_IDENTITY=""
+            CODE_SIGN_IDENTITY="" 2>&1 | tee ../build.log
+          STATUS=${PIPESTATUS[0]}
+          echo "## 编译错误" >> $GITHUB_STEP_SUMMARY
+          grep -n "error:" ../build.log | head -20 >> $GITHUB_STEP_SUMMARY || echo "无 error 行" >> $GITHUB_STEP_SUMMARY
+          exit $STATUS
 
       - name: 打包未签名 IPA
         run: |
