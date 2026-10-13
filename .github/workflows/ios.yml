@@ -1,0 +1,43 @@
+name: Build iOS IPA
+
+on:
+  push:
+    branches: [main, master]
+    paths: ['ios/**', '.github/workflows/ios.yml']
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Xcode 信息
+        run: xcodebuild -version
+
+      - name: Archive（不签名）
+        working-directory: ios
+        run: |
+          xcodebuild archive \
+            -project Qipai.xcodeproj \
+            -scheme Qipai \
+            -configuration Release \
+            -archivePath ../build/Qipai.xcarchive \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO
+
+      - name: 打包未签名 IPA
+        run: |
+          APP=build/Qipai.xcarchive/Products/Applications/Qipai.app
+          test -d "$APP" || { echo "找不到 $APP"; exit 1; }
+          mkdir -p build/Payload
+          cp -R "$APP" build/Payload/
+          (cd build && zip -qr Qipai-unsigned.ipa Payload)
+          ls -la build/Qipai-unsigned.ipa
+
+      - name: 上传 IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: Qipai-unsigned-ipa
+          path: build/Qipai-unsigned.ipa
+          retention-days: 30
