@@ -305,6 +305,10 @@ struct DoudizhuTableView: View {
     @EnvironmentObject var client: GameClient
     @State private var selected: Set<Int> = Set()
     @State private var passHint = false
+    @State private var showBomb = false
+    @State private var showRocket = false
+    @State private var showChat = false
+    @State private var lastPlayId = ""
 
     var oppA: Int { (client.mySeat + 1) % 3 }
     var oppB: Int { (client.mySeat + 2) % 3 }
@@ -436,27 +440,73 @@ struct DoudizhuTableView: View {
                 .buttonStyle(.borderedProminent).tint(gold).foregroundColor(.black)
                 .disabled(selected.isEmpty)
             } else {
+                Button("💬") { showChat = true }
+                    .font(.title2)
+                    .padding(8)
+                    .background(Color.white.opacity(0.15))
+                    .cornerRadius(20)
                 Button("离开") { client.leaveRoom() }.font(.footnote).foregroundColor(.gray)
             }
         }
         .padding(.horizontal)
+    }
+    .overlay(
+        Group {
+            if showBomb {
+                BombEffectView { showBomb = false }
+            }
+            if showRocket {
+                RocketEffectView { showRocket = false }
+            }
+        }
+    )
+    .sheet(isPresented: $showChat) {
+        QuickChatView(isShown: $showChat)
+            .environmentObject(client)
+    }
+    .onChange(of: client.lastPlay?.cards.count) { _ in
+        // 检测炸弹/火箭
+        if let lp = client.lastPlay {
+            let playKey = lp.cards.map { String($0.id) }.joined(separator: ",")
+            if playKey != lastPlayId {
+                lastPlayId = playKey
+                if lp.cards.count == 4 {
+                    showBomb = true
+                } else if lp.cards.count == 2 && lp.cards.allSatisfy({ $0.rank >= 16 }) {
+                    showRocket = true
+                }
+            }
+        }
     }
 }
 
 struct OpponentView: View {
     @EnvironmentObject var client: GameClient
     let seat: Int
+
+    private var avatar: String {
+        let avatars = ["😎", "🤓", "😜", "🤠", "🥳", "😇", "🤖", "👾"]
+        let name = seat < client.seats.count ? client.seats[seat].name : ""
+        let h = abs(name.hashValue) % avatars.count
+        return avatars[h]
+    }
+
     var body: some View {
         VStack(spacing: 4) {
-            Text(seat < client.seats.count ? client.seats[seat].name : "").font(.subheadline).bold()
-            if client.landlord == seat { Text("👑").font(.caption) }
+            PlayerPanelView(
+                name: seat < client.seats.count ? client.seats[seat].name : "",
+                coins: 0,
+                cardCount: seat < client.handCounts.count ? client.handCounts[seat] : 0,
+                isLandlord: client.landlord == seat,
+                isTurn: (client.turn == seat && client.phase == "play") || (client.bidTurn == seat && client.phase == "bid"),
+                avatar: avatar
+            )
             if client.phase == "bid", seat < client.bids.count, let b = client.bids[seat] {
-                Text(b == 0 ? "不叫" : "叫\(b)分").font(.caption2).foregroundColor(gold)
-            }
-            ZStack {
-                RoundedRectangle(cornerRadius: 6).fill(Color.blue.opacity(0.7)).frame(width: 40, height: 56)
-                Text("\(seat < client.handCounts.count ? client.handCounts[seat] : 0)")
-                    .bold().foregroundColor(.white)
+                Text(b == 0 ? "不叫" : "叫\(b)分")
+                    .font(.caption).bold().foregroundColor(.white)
+                    .padding(.horizontal, 8).padding(.vertical, 3)
+                    .background(b == 0 ? Color.gray.opacity(0.6) : gold.opacity(0.9))
+                    .cornerRadius(10)
             }
             if client.turn == seat && client.phase == "play" {
                 Text("思考中…").font(.caption2).foregroundColor(gold)
