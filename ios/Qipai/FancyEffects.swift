@@ -58,8 +58,8 @@ struct DealingCardsView: View {
             ForEach(0..<min(count, 10), id: \.self) { i in
                 CardBackView(small: true)
                     .offset(
-                        x: CGFloat(i - 5) * 12 * progress,
-                        y: (1 - progress) * -200 + CGFloat(i % 3) * 4 * progress
+                        x: CGFloat(i - 5) * 12.0 * CGFloat(progress),
+                        y: (1.0 - progress) * -200.0 + CGFloat(i % 3) * 4.0 * CGFloat(progress)
                     )
                     .opacity(progress > 0.1 ? 1 : 0)
                     .rotationEffect(.degrees(Double(i - 5) * 3 * progress))
@@ -185,9 +185,9 @@ extension View {
 // MARK: - 腾讯式金色大按钮
 struct TencentButton: View {
     let title: String
-    let action: () -> Void
     var enabled: Bool = true
     var isPrimary: Bool = true
+    let action: () -> Void
 
     var body: some View {
         Button(action: {
