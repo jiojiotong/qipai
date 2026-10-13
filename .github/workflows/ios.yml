@@ -22,9 +22,11 @@ jobs:
             -project Qipai.xcodeproj \
             -scheme Qipai \
             -configuration Release \
+            -destination "generic/platform=iOS" \
             -archivePath ../build/Qipai.xcarchive \
             CODE_SIGNING_ALLOWED=NO \
-            CODE_SIGNING_REQUIRED=NO
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY=""
 
       - name: 打包未签名 IPA
         run: |
