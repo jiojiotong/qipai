@@ -411,6 +411,7 @@ struct DoudizhuTableView: View {
         }
         .overlay { if client.phase == "over" { GameOverView() } }
     }
+    } // 补 body 闭合
 
     private func seatName(_ i: Int) -> String {
         if i == client.mySeat { return "你" }
@@ -451,8 +452,9 @@ struct DoudizhuTableView: View {
                     Text("💡 建议不出").font(.caption).foregroundColor(gold)
                 }
                 TencentButton(title: "出牌", enabled: !selected.isEmpty) {
-                    let cards = selected.sorted()
-                    client.playCards(cards)
+                    let ids = selected.sorted()
+                    let cards = ids.map { Card(id: $0) }
+                    client.playCards(ids)
                     selected.removeAll()
                     if cards.count == 4 || (cards.count == 2 && cards.allSatisfy({ $0.rank >= 16 })) {
                         SoundManager.shared.play("bomb")
@@ -512,7 +514,6 @@ struct DoudizhuTableView: View {
             }
         }
     }
-}
 
 struct OpponentView: View {
     @EnvironmentObject var client: GameClient
