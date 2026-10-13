@@ -2,6 +2,10 @@ import SwiftUI
 
 let gold = Color(red: 0.79, green: 0.64, blue: 0.15)
 let bgBlack = Color(red: 0.08, green: 0.08, blue: 0.08)
+let feltGreen = LinearGradient(
+    colors: [Color(red: 0.12, green: 0.35, blue: 0.2), Color(red: 0.08, green: 0.25, blue: 0.15)],
+    startPoint: .top, endPoint: .bottom
+)
 let cardBack = Color(red: 0.13, green: 0.13, blue: 0.13)
 
 // MARK: - 入口
@@ -174,7 +178,7 @@ struct RoomView: View {
     }
     var body: some View {
         ZStack {
-            bgBlack.ignoresSafeArea()
+            feltGreen.ignoresSafeArea()
             if client.phase == "" {
                 VStack(spacing: 16) {
                     Text(gameNameText).font(.title).bold().foregroundColor(gold)
@@ -390,24 +394,44 @@ struct DoudizhuTableView: View {
         HStack(spacing: 12) {
             if client.phase == "bid" && client.bidTurn == client.mySeat {
                 let bidMax = client.bids.compactMap { $0 }.max() ?? 0
-                Button("不叫") { client.bid(0) }.buttonStyle(.bordered)
+                Button("不叫") {
+                    client.bid(0)
+                    SoundManager.shared.play("click")
+                    VoiceAnnouncer.shared.speak("不叫")
+                }.buttonStyle(.bordered)
                 if bidMax < 3 {
                     ForEach((bidMax + 1)...3, id: \.self) { s in
-                        Button("\(s)分") { client.bid(s) }
+                        Button("\(s)分") {
+                            client.bid(s)
+                            SoundManager.shared.play("click")
+                            VoiceAnnouncer.shared.speak("叫\(s)分")
+                        }
                             .buttonStyle(.borderedProminent).tint(gold).foregroundColor(.black)
                     }
                 }
             } else if client.phase == "play" && client.turn == client.mySeat {
                 if client.lastPlay != nil {
-                    Button("不出") { client.pass() }.buttonStyle(.bordered)
+                    Button("不出") {
+                        client.pass()
+                        SoundManager.shared.play("click")
+                        VoiceAnnouncer.shared.speak("不出")
+                    }.buttonStyle(.bordered)
                 }
                 Button("提示") { client.requestHint() }.buttonStyle(.bordered)
                 if passHint {
                     Text("💡 建议不出").font(.caption).foregroundColor(gold)
                 }
                 Button("出牌") {
-                    client.playCards(selected.sorted())
+                    let cards = selected.sorted()
+                    client.playCards(cards)
                     selected.removeAll()
+                    // 炸弹/火箭特殊音效+播报
+                    if cards.count == 4 || (cards.count == 2 && cards.allSatisfy({ $0.rank >= 16 })) {
+                        SoundManager.shared.play("bomb")
+                        VoiceAnnouncer.shared.speak("炸弹")
+                    } else {
+                        SoundManager.shared.play("deal")
+                    }
                 }
                 .buttonStyle(.borderedProminent).tint(gold).foregroundColor(.black)
                 .disabled(selected.isEmpty)
@@ -478,35 +502,4 @@ struct GameOverView: View {
 }
 
 // MARK: - 牌
-struct CardView: View {
-    let card: Card
-    var selected: Bool = false
-    var body: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 8)
-                .fill(Color.white)
-                .frame(width: 54, height: 76)
-                .shadow(radius: 2)
-            VStack(spacing: 0) {
-                Text(card.rankText)
-                    .font(card.rank >= 16 ? .system(size: 13, weight: .bold) : .system(size: 17, weight: .bold))
-                if card.suit < 4 {
-                    Text(card.suitText).font(.system(size: 15))
-                }
-            }
-            .foregroundColor(card.isRed || card.rank == 17 ? .red : .black)
-        }
-        .offset(y: selected ? -14 : 0)
-    }
-}
-
-struct MiniCard: View {
-    let card: Card
-    var body: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 4).fill(Color.white).frame(width: 30, height: 42)
-            Text(card.rankText).font(.system(size: 11, weight: .bold))
-                .foregroundColor(card.isRed || card.rank == 17 ? .red : .black)
-        }
-    }
-}
+// (CardView/MiniCard 已移至 CardDesign.swift)

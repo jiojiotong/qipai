@@ -18,6 +18,14 @@ struct SettingsView: View {
 
             Divider()
 
+            Toggle("🗣 语音播报", isOn: Binding(
+                get: { VoiceAnnouncer.shared.enabled },
+                set: { VoiceAnnouncer.shared.enabled = $0 }
+            ))
+            .tint(gold)
+
+            Divider()
+
             Text("修改密码").font(.headline)
             SecureField("旧密码", text: $oldPw).textFieldStyle(.roundedBorder)
             SecureField("新密码（至少4位）", text: $newPw).textFieldStyle(.roundedBorder)
